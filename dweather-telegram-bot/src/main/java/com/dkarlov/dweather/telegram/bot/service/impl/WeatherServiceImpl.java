@@ -15,13 +15,21 @@ import java.util.Optional;
 public class WeatherServiceImpl implements WeatherService {
     private final Map<User, Weather> userWeather = new HashMap<>();
 
+    @Override
     public Optional<Weather> getWeather(User user) {
         log.info("Pulling User {} from container", user.getId());
         return Optional.ofNullable(userWeather.get(user));
     }
 
+    @Override
     public Weather putWeather(User user, Weather weather) {
         log.info("Adding User {} to container", user.getId());
         return userWeather.put(user, weather);
+    }
+
+    @Override
+    public void removeWeather(User user) {
+        log.info("Removing data for User {} from container", user.getId());
+        userWeather.remove(user);
     }
 }

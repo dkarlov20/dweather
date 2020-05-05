@@ -1,25 +1,26 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
+import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static com.dkarlov.dweather.telegram.bot.domain.Command.CREATE;
 import static com.dkarlov.dweather.telegram.bot.domain.Command.TEMPERATURE;
+import static com.google.common.collect.Lists.newArrayList;
 
 @Component
 @Slf4j
-public class TemperatureCommand extends BotCommand {
+public class TemperatureCommand extends AbstractBotCommand {
     private static final String THIRTY_PLUS = "30 +";
     private static final String TWENTY_TO_THIRTY = "20 - 30";
     private static final String TEN_TO_TWENTY = "10 - 20";
@@ -32,52 +33,33 @@ public class TemperatureCommand extends BotCommand {
     @Value("${dweather.command.selection.temperature}")
     private String temperatureSelection;
 
-    public TemperatureCommand() {
-        super(TEMPERATURE.name().toLowerCase(), TEMPERATURE.getDescription());
+    private final WeatherService weatherService;
+
+    public TemperatureCommand(WeatherService weatherService) {
+        super(TEMPERATURE);
+        this.weatherService = weatherService;
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        log.info("Setting temperature for User {}", user.getId());
+    protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
+        final SendMessage sendMessage = new SendMessage().setChatId(chat.getId());
+        final Optional<Weather> weatherOptional = weatherService.getWeather(user);
+        weatherOptional.ifPresentOrElse(weather -> {
+                    log.info("Setting temperature for User {}", user.getId());
+                    sendMessage.setText(temperatureSelection)
+                            .setReplyMarkup(createReplyKeyboard(prepareButtons()));
+                },
+                () -> sendMessage.setText("You didn`t create any event.\nPlease use /" + CREATE.name().toLowerCase() + " to create a new one."));
 
-        sendReply(absSender, chat.getId());
+        return sendMessage;
     }
 
-    private void sendReply(AbsSender absSender, long chatId) {
-        final SendMessage sendMessage = new SendMessage()
-                .setChatId(chatId)
-                .setText(temperatureSelection)
-                .setReplyMarkup(createReplyKeyboard());
-        try {
-            absSender.execute(sendMessage);
-        } catch (TelegramApiException exception) {
-            log.error("Error occurred while executing /" + TEMPERATURE.name().toLowerCase() + " command", exception);
-        }
-    }
-
-    private InlineKeyboardMarkup createReplyKeyboard() {
-        final InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        final List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
-        final List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
-        final List<InlineKeyboardButton> keyboardButtonsRow3 = new ArrayList<>();
-        final List<InlineKeyboardButton> keyboardButtonsRow4 = new ArrayList<>();
-        keyboardButtonsRow1.add(new InlineKeyboardButton().setText(THIRTY_PLUS).setCallbackData(THIRTY_PLUS));
-        keyboardButtonsRow1.add(new InlineKeyboardButton().setText(TWENTY_TO_THIRTY).setCallbackData(TWENTY_TO_THIRTY));
-        keyboardButtonsRow2.add(new InlineKeyboardButton().setText(TEN_TO_TWENTY).setCallbackData(TEN_TO_TWENTY));
-        keyboardButtonsRow2.add(new InlineKeyboardButton().setText(ZERO_TO_TEN).setCallbackData(ZERO_TO_TEN));
-        keyboardButtonsRow3.add(new InlineKeyboardButton().setText(MINUS_TEN_TO_ZERO).setCallbackData(MINUS_TEN_TO_ZERO));
-        keyboardButtonsRow3.add(new InlineKeyboardButton().setText(MINUS_TWENTY_TO_MINUS_TEN).setCallbackData(MINUS_TWENTY_TO_MINUS_TEN));
-        keyboardButtonsRow4.add(new InlineKeyboardButton().setText(MINUS_THIRTY_TO_MINUS_TWENTY).setCallbackData(MINUS_THIRTY_TO_MINUS_TWENTY));
-        keyboardButtonsRow4.add(new InlineKeyboardButton().setText(MINUS_THIRTY_MINUS).setCallbackData(MINUS_THIRTY_MINUS));
-
-        final List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow1);
-        rowList.add(keyboardButtonsRow2);
-        rowList.add(keyboardButtonsRow3);
-        rowList.add(keyboardButtonsRow4);
-
-        inlineKeyboardMarkup.setKeyboard(rowList);
-
-        return inlineKeyboardMarkup;
+    private List<List<Pair<String, String>>> prepareButtons() {
+        return newArrayList(
+                newArrayList(Pair.of(THIRTY_PLUS, THIRTY_PLUS), Pair.of(TWENTY_TO_THIRTY, TWENTY_TO_THIRTY)),
+                newArrayList(Pair.of(TEN_TO_TWENTY, TEN_TO_TWENTY), Pair.of(ZERO_TO_TEN, ZERO_TO_TEN)),
+                newArrayList(Pair.of(MINUS_TEN_TO_ZERO, MINUS_TEN_TO_ZERO), Pair.of(MINUS_TWENTY_TO_MINUS_TEN, MINUS_TWENTY_TO_MINUS_TEN)),
+                newArrayList(Pair.of(MINUS_THIRTY_TO_MINUS_TWENTY, MINUS_THIRTY_TO_MINUS_TWENTY), Pair.of(MINUS_THIRTY_MINUS, MINUS_THIRTY_MINUS))
+        );
     }
 }

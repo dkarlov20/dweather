@@ -1,67 +1,58 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
+import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import static com.dkarlov.dweather.telegram.bot.domain.Command.CREATE;
 import static com.dkarlov.dweather.telegram.bot.domain.Command.PRECIPITATION;
 import static com.dkarlov.dweather.telegram.bot.domain.Precipitation.RAIN;
 import static com.dkarlov.dweather.telegram.bot.domain.Precipitation.SNOW;
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 
 @Component
 @Slf4j
-public class PrecipitationCommand extends BotCommand {
+public class PrecipitationCommand extends AbstractBotCommand {
+    private final WeatherService weatherService;
 
     @Value("${dweather.command.selection.precipitation}")
     private String precipitationSelection;
 
-    public PrecipitationCommand() {
-        super(PRECIPITATION.name().toLowerCase(), PRECIPITATION.getDescription());
+    public PrecipitationCommand(WeatherService weatherService) {
+        super(PRECIPITATION);
+        this.weatherService = weatherService;
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        log.info("Setting precipitation for User {}", user.getId());
+    protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
+        final SendMessage sendMessage = new SendMessage().setChatId(chat.getId());
+        final Optional<Weather> weatherOptional = weatherService.getWeather(user);
+        weatherOptional.ifPresentOrElse(weather -> {
+                    log.info("Setting precipitation for User {}", user.getId());
+                    sendMessage.setText(precipitationSelection)
+                            .setReplyMarkup(createReplyKeyboard(prepareButtons()));
+                },
+                () -> sendMessage.setText("You didn`t create any event.\nPlease use /" + CREATE.name().toLowerCase() + " to create a new one."));
 
-        sendReply(absSender, chat.getId());
+        return sendMessage;
     }
 
-    private void sendReply(AbsSender absSender, long chatId) {
-        final SendMessage sendMessage = new SendMessage()
-                .setChatId(chatId)
-                .setText(precipitationSelection)
-                .setReplyMarkup(createReplyKeyboard());
-        try {
-            absSender.execute(sendMessage);
-        } catch (TelegramApiException exception) {
-            log.error("Error occurred while executing /" + PRECIPITATION.name().toLowerCase() + " command", exception);
-        }
-    }
-
-    private InlineKeyboardMarkup createReplyKeyboard() {
-        final InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        final List<InlineKeyboardButton> keyboardButtonsRow1 = new ArrayList<>();
-        final List<InlineKeyboardButton> keyboardButtonsRow2 = new ArrayList<>();
-        keyboardButtonsRow1.add(new InlineKeyboardButton().setText(RAIN.name().toLowerCase()).setCallbackData(RAIN.name().toLowerCase()));
-        keyboardButtonsRow2.add(new InlineKeyboardButton().setText(SNOW.name().toLowerCase()).setCallbackData(SNOW.name().toLowerCase()));
-
-        final List<List<InlineKeyboardButton>> rowList = new ArrayList<>();
-        rowList.add(keyboardButtonsRow1);
-        rowList.add(keyboardButtonsRow2);
-
-        inlineKeyboardMarkup.setKeyboard(rowList);
-
-        return inlineKeyboardMarkup;
+    private List<List<Pair<String, String>>> prepareButtons() {
+        return newArrayList(
+                singletonList(Pair.of(capitalize(RAIN.name().toLowerCase()), capitalize(RAIN.name().toLowerCase()))),
+                singletonList(Pair.of(capitalize(SNOW.name().toLowerCase()), capitalize(SNOW.name().toLowerCase())))
+        );
     }
 }

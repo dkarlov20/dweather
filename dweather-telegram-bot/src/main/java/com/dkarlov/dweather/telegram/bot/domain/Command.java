@@ -5,7 +5,8 @@ public enum Command {
     WIND("Desired wind speed interval (m/s)"),
     TEMPERATURE("Desired temperature interval (c)"),
     PRECIPITATION("Desired precipitations"),
-    DONE("Save created event");
+    DONE("Save created event"),
+    EVENTS("List all created user events");
 
     private final String description;
 

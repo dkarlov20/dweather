@@ -1,0 +1,12 @@
+dweather:
+    command:
+        selection:
+            events: 'Your events:'
+            precipitation: 'Select desired precipitation:'
+            temperature: 'Select desired temperature interval:'
+            wind: 'Select desired wind interval:'
+    mongodb:
+        url: mongodb://dweather:dweather@localhost:27017/?authSource=admin
+        database: dweather
+        collection:
+            event: events

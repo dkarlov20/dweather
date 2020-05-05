@@ -9,4 +9,6 @@ public interface WeatherService {
     Optional<Weather> getWeather(User user);
 
     Weather putWeather(User user, Weather weather);
+
+    void removeWeather(User user);
 }
