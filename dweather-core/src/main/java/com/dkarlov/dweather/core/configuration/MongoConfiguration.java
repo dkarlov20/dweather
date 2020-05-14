@@ -1,4 +1,4 @@
-package com.dkarlov.dweather.telegram.bot.configuration;
+package com.dkarlov.dweather.core.configuration;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClient;

@@ -1,6 +1,6 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
-import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -38,8 +38,8 @@ public class PrecipitationCommand extends AbstractBotCommand {
     @Override
     protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
         final SendMessage sendMessage = new SendMessage().setChatId(chat.getId());
-        final Optional<Weather> weatherOptional = weatherService.getWeather(user);
-        weatherOptional.ifPresentOrElse(weather -> {
+        final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
+        desiredWeatherOptional.ifPresentOrElse(w -> {
                     log.info("Setting precipitation for User {}", user.getId());
                     sendMessage.setText(precipitationSelection)
                             .setReplyMarkup(createReplyKeyboard(prepareButtons()));

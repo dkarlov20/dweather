@@ -1,6 +1,6 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
-import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -25,7 +25,7 @@ public class CreateEventCommand extends AbstractBotCommand {
 
     @Override
     protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        weatherService.putWeather(user, new Weather());
+        weatherService.putDesiredWeather(user, new DesiredWeather());
         return new SendMessage()
                 .setChatId(chat.getId())
                 .setText(getInstructionMessage());

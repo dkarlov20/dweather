@@ -5,8 +5,7 @@ dweather:
             precipitation: 'Select desired precipitation:'
             temperature: 'Select desired temperature interval:'
             wind: 'Select desired wind interval:'
-    mongodb:
-        url: mongodb://dweather:dweather@localhost:27017/?authSource=admin
-        database: dweather
-        collection:
-            event: events
+    api:
+        url: http://dweather-core:8080/v1/dweather/events
+server:
+    port: 8081

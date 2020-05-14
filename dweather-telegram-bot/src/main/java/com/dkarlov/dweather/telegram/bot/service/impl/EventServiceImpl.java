@@ -1,12 +1,16 @@
 package com.dkarlov.dweather.telegram.bot.service.impl;
 
 import com.dkarlov.dweather.telegram.bot.domain.Event;
-import com.dkarlov.dweather.telegram.bot.repository.EventRepository;
+import com.dkarlov.dweather.telegram.bot.domain.dto.EventDto;
 import com.dkarlov.dweather.telegram.bot.service.EventService;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.User;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,27 +18,39 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class EventServiceImpl implements EventService {
-    private final EventRepository eventRepository;
+    private final RestTemplate restTemplate;
 
-    public EventServiceImpl(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    @Value("${dweather.api.url}")
+    private String url;
+
+    public EventServiceImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
     }
 
     @Override
-    public Event saveEvent(Event event) {
+    public Event saveEvent(EventDto event) {
         log.info("Saving event for User {}", event.getUserId());
-        return eventRepository.saveEvent(event);
+        return restTemplate.postForObject(url, event, Event.class);
     }
 
     @Override
-    public List<Event> getUserEvents(User user) {
-        log.info("Getting events for User {}", user.getId());
-        return eventRepository.getUserEvents(user);
+    public List<Event> getEventsByUserId(int userId) {
+        log.info("Getting events for User {}", userId);
+        ResponseEntity<List<Event>> responseEntity = restTemplate.exchange(
+                UriComponentsBuilder.fromHttpUrl(url).queryParam("user_id", userId).toUriString(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Event>>() {
+                });
+
+        return responseEntity.getBody();
     }
 
     @Override
-    public Optional<Event> getUserEventById(ObjectId eventId) {
+    public Optional<Event> getEventById(String eventId) {
         log.info("Getting event by id {}", eventId);
-        return eventRepository.getUserEvent(eventId);
+
+        return Optional.ofNullable(restTemplate.getForObject(url + "/" + eventId, Event.class));
+
     }
 }

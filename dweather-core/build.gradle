@@ -2,7 +2,6 @@ plugins {
     id 'org.springframework.boot' version '2.2.6.RELEASE'
     id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
-    id 'idea'
 }
 
 group = 'com.dkarlov'
@@ -20,24 +19,17 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
     implementation 'org.apache.commons:commons-lang3:3.10'
-    implementation 'org.telegram:telegrambots:4.8.1'
-    implementation 'org.telegram:telegrambotsextensions:4.8.1'
+    implementation 'org.mongodb:mongo-java-driver:3.12.3'
 }
 
 test {
     useJUnitPlatform()
-}
-
-idea {
-    module {
-        downloadSources = true
-    }
 }

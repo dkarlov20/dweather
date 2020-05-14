@@ -1,7 +1,7 @@
 package com.dkarlov.dweather.telegram.bot.command.processor;
 
+import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
 import com.dkarlov.dweather.telegram.bot.domain.Precipitation;
-import com.dkarlov.dweather.telegram.bot.domain.Weather;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import java.util.HashSet;
 import java.util.Optional;
 
 @Component
@@ -27,17 +26,22 @@ public class PrecipitationResponseProcessor extends AbstractCommandResponseProce
         final User user = callbackQuery.getFrom();
         final String data = callbackQuery.getData();
 
-        final Optional<Weather> weatherOptional = weatherService.getWeather(user);
-        if (weatherOptional.isPresent()) {
-            final Weather weather = weatherOptional.get();
-            if (weather.getPrecipitation() == null) {
-                weather.setPrecipitation(new HashSet<>());
+        final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
+        if (desiredWeatherOptional.isPresent()) {
+            final DesiredWeather desiredWeather = desiredWeatherOptional.get();
+            switch (Precipitation.valueOf(data.toUpperCase())) {
+                case SNOW:
+                    desiredWeather.setSnowing(true);
+                    log.info("Snowing was set ot true");
+                    break;
+                case RAIN:
+                    desiredWeather.setRaining(true);
+                    log.info("Raining was set ot true");
+                    break;
             }
-            weather.getPrecipitation().add(Precipitation.valueOf(data.toUpperCase()));
-            weatherService.putWeather(user, weather);
+            weatherService.putDesiredWeather(user, desiredWeather);
 
-            log.info("Set precipitation to {}", data);
-            return "Precipitation was set to: " + data;
+            return "Add precipitation: " + data;
         }
 
         return "Please create an event first";

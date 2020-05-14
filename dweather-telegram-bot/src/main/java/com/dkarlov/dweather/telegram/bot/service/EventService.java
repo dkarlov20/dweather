@@ -1,16 +1,15 @@
 package com.dkarlov.dweather.telegram.bot.service;
 
 import com.dkarlov.dweather.telegram.bot.domain.Event;
-import org.bson.types.ObjectId;
-import org.telegram.telegrambots.meta.api.objects.User;
+import com.dkarlov.dweather.telegram.bot.domain.dto.EventDto;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface EventService {
-    Event saveEvent(Event event);
+    Event saveEvent(EventDto event);
 
-    List<Event> getUserEvents(User user);
+    List<Event> getEventsByUserId(int userId);
 
-    Optional<Event> getUserEventById(ObjectId eventId);
+    Optional<Event> getEventById(String eventId);
 }

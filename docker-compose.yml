@@ -12,6 +12,12 @@ services:
     dweather-telegram-bot:
         build: ./dweather-telegram-bot/
         depends_on:
+            - dweather-core
+    dweather-core:
+        build: ./dweather-core/
+        ports:
+            - 8080:8080
+        depends_on:
             - mongodb
 
 volumes:

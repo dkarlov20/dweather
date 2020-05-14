@@ -1,7 +1,8 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
+import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
 import com.dkarlov.dweather.telegram.bot.domain.Event;
-import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.domain.dto.EventDto;
 import com.dkarlov.dweather.telegram.bot.service.EventService;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +12,6 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.dkarlov.dweather.telegram.bot.domain.Command.CREATE;
@@ -33,17 +33,20 @@ public class DoneCommand extends AbstractBotCommand {
     protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
         final SendMessage sendMessage = new SendMessage()
                 .setChatId(chat.getId());
-        final Optional<Weather> weather = weatherService.getWeather(user);
+        final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
 
-        weather.ifPresentOrElse(w -> {
-            Event event = new Event();
-            event.setUserId(user.getId());
-            event.setUserName(user.getUserName());
-            event.setWeather(w);
-            event.setCreatedDate(LocalDateTime.now());
-            eventService.saveEvent(event);
-            weatherService.removeWeather(user);
-            sendMessage.setText("Event was created:\n" + w);
+        desiredWeatherOptional.ifPresentOrElse(w -> {
+            final EventDto eventDto = EventDto.builder()
+                    .userId(user.getId())
+                    .userName(user.getUserName())
+                    .temperature(w.getTemperature())
+                    .wind(w.getWind())
+                    .raining(w.isRaining())
+                    .snowing(w.isSnowing())
+                    .build();
+            final Event event = eventService.saveEvent(eventDto);
+            weatherService.removeDesiredWeather(user);
+            sendMessage.setText("Event was created:\n" + event);
         }, () -> {
             log.info("For User {} any event wasn`t found", user.getId());
             sendMessage.setText("You didn`t create any event.\nPlease use /" + CREATE.name().toLowerCase() + " to create a new one.");

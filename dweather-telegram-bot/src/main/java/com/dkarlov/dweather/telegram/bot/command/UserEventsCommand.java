@@ -33,7 +33,7 @@ public class UserEventsCommand extends AbstractBotCommand {
     @Override
     protected SendMessage processCommand(AbsSender absSender, User user, Chat chat, String[] arguments) {
         final SendMessage sendMessage = new SendMessage().setChatId(chat.getId());
-        final List<Event> userEvents = eventService.getUserEvents(user);
+        final List<Event> userEvents = eventService.getEventsByUserId(user.getId());
 
         if (userEvents.isEmpty()) {
             sendMessage.setText("You didn`t create any event.\nPlease use /" + CREATE.name().toLowerCase() + " to create a new one.");
@@ -49,7 +49,7 @@ public class UserEventsCommand extends AbstractBotCommand {
     private List<List<Pair<String, String>>> prepareButtons(List<Event> userEvents) {
         List<List<Pair<String, String>>> buttons = new ArrayList<>();
         for (Event userEvent : userEvents) {
-            buttons.add(singletonList(Pair.of(userEvent.getId().toHexString(), userEvent.getCreatedDate().format(ISO_DATE))));
+            buttons.add(singletonList(Pair.of(userEvent.getId(), userEvent.getCreatedDate().format(ISO_DATE))));
         }
 
         return buttons;

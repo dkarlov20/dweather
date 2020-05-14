@@ -1,32 +1,39 @@
 package com.dkarlov.dweather.telegram.bot.domain;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.bson.codecs.pojo.annotations.BsonProperty;
-import org.bson.types.ObjectId;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
-import static com.dkarlov.dweather.telegram.bot.domain.TableNameConstants.CREATED_DATE;
-import static com.dkarlov.dweather.telegram.bot.domain.TableNameConstants.USER_ID;
-import static com.dkarlov.dweather.telegram.bot.domain.TableNameConstants.USER_NAME;
-import static com.dkarlov.dweather.telegram.bot.domain.TableNameConstants.WEATHER;
-import static com.dkarlov.dweather.telegram.bot.domain.TableNameConstants._ID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Event {
-
-    @BsonProperty(_ID)
-    private ObjectId id;
-
-    @BsonProperty(USER_ID)
+    private String id;
     private int userId;
-
-    @BsonProperty(USER_NAME)
     private String userName;
-
-    @BsonProperty(WEATHER)
-    private Weather weather;
-
-    @BsonProperty(CREATED_DATE)
+    private DesiredWeather desiredWeather;
+    private List<WeatherPerDay> suitableDates;
     private LocalDateTime createdDate;
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (desiredWeather != null) {
+            stringBuilder.append("Desired weather:\n").append(desiredWeather);
+        }
+        if (suitableDates != null) {
+            if (suitableDates.isEmpty()) {
+                stringBuilder.append("\nSuitable dates for this event weren`t found");
+            } else {
+                stringBuilder.append("\nSuitable dates:\n").append(suitableDates.stream().map(WeatherPerDay::getDate).collect(Collectors.joining(", ")));
+            }
+        }
+        return stringBuilder.toString();
+    }
 }

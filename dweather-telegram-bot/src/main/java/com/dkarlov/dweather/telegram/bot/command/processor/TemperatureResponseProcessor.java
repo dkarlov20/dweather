@@ -1,6 +1,6 @@
 package com.dkarlov.dweather.telegram.bot.command.processor;
 
-import com.dkarlov.dweather.telegram.bot.domain.Weather;
+import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,13 +25,13 @@ public class TemperatureResponseProcessor extends AbstractCommandResponseProcess
         final String data = callbackQuery.getData();
         final User user = callbackQuery.getFrom();
 
-        final Optional<Weather> weatherOptional = weatherService.getWeather(user);
-        if (weatherOptional.isPresent()) {
-            final Weather weather = weatherOptional.get();
-            weather.setTemperature(data);
-            weatherService.putWeather(user, weather);
+        final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
+        if (desiredWeatherOptional.isPresent()) {
+            final DesiredWeather desiredWeather = desiredWeatherOptional.get();
+            desiredWeather.setTemperature(Double.valueOf(data));
+            weatherService.putDesiredWeather(user, desiredWeather);
 
-            log.info("Set temperature to {}", data);
+            log.info("Temperature was set to {}", data);
             return "Temperature was set to: " + data;
         }
 

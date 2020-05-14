@@ -1,0 +1,10 @@
+dweather:
+    weatherbit:
+        key: a436b3941df64c05aa11360ae502cc04
+        url: https://api.weatherbit.io/v2.0/forecast/daily
+        city: Kharkiv
+    mongodb:
+        url: mongodb://dweather:dweather@mongodb:27017/?authSource=admin
+        database: dweather
+        collection:
+            event: events
