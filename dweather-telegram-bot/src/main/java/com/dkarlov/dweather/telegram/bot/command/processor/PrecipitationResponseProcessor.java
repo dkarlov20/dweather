@@ -25,25 +25,25 @@ public class PrecipitationResponseProcessor extends AbstractCommandResponseProce
         final CallbackQuery callbackQuery = update.getCallbackQuery();
         final User user = callbackQuery.getFrom();
         final String data = callbackQuery.getData();
-
         final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
-        if (desiredWeatherOptional.isPresent()) {
-            final DesiredWeather desiredWeather = desiredWeatherOptional.get();
-            switch (Precipitation.valueOf(data.toUpperCase())) {
-                case SNOW:
-                    desiredWeather.setSnowing(true);
-                    log.info("Snowing was set ot true");
-                    break;
-                case RAIN:
-                    desiredWeather.setRaining(true);
-                    log.info("Raining was set ot true");
-                    break;
-            }
-            weatherService.putDesiredWeather(user, desiredWeather);
 
-            return "Add precipitation: " + data;
+        return desiredWeatherOptional.map(desiredWeather -> updatePrecipitation(user, data, desiredWeather))
+                .orElse("Please create an event first");
+    }
+
+    private String updatePrecipitation(User user, String data, DesiredWeather desiredWeather) {
+        switch (Precipitation.valueOf(data.toUpperCase())) {
+            case SNOW:
+                desiredWeather.setSnowing(true);
+                log.info("Snowing was set ot true");
+                break;
+            case RAIN:
+                desiredWeather.setRaining(true);
+                log.info("Raining was set ot true");
+                break;
         }
+        weatherService.putDesiredWeather(user, desiredWeather);
 
-        return "Please create an event first";
+        return "Add precipitation: " + data;
     }
 }

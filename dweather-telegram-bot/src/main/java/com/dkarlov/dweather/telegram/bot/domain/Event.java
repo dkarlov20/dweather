@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 @Data
 @Builder
@@ -23,7 +24,7 @@ public class Event {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder("Event:\n");
         if (desiredWeather != null) {
             stringBuilder.append("Desired weather:\n").append(desiredWeather);
         }
@@ -31,7 +32,9 @@ public class Event {
             if (suitableDates.isEmpty()) {
                 stringBuilder.append("\nSuitable dates for this event weren`t found");
             } else {
-                stringBuilder.append("\nSuitable dates:\n").append(suitableDates.stream().map(WeatherPerDay::getDate).collect(Collectors.joining(", ")));
+                stringBuilder.append("\nSuitable dates:\n").append(suitableDates.stream()
+                        .map(WeatherPerDay::getDate)
+                        .collect(joining(", ")));
             }
         }
         return stringBuilder.toString();

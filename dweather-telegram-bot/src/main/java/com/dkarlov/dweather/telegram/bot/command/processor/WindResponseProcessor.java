@@ -24,17 +24,17 @@ public class WindResponseProcessor extends AbstractCommandResponseProcessor {
         final CallbackQuery callbackQuery = update.getCallbackQuery();
         final User user = callbackQuery.getFrom();
         final String data = callbackQuery.getData();
-
         final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
-        if (desiredWeatherOptional.isPresent()) {
-            final DesiredWeather desiredWeather = desiredWeatherOptional.get();
-            desiredWeather.setWind(Double.valueOf(data));
-            weatherService.putDesiredWeather(user, desiredWeather);
 
-            log.info("Wind was set to {}", data);
-            return "Wind was set to: " + data;
-        }
+        return desiredWeatherOptional.map(desiredWeather -> updateWind(user, data, desiredWeather))
+                .orElse("Please create an event first");
+    }
 
-        return "Please create an event first";
+    private String updateWind(User user, String data, DesiredWeather desiredWeather) {
+        desiredWeather.setWind(Double.valueOf(data));
+        weatherService.putDesiredWeather(user, desiredWeather);
+
+        log.info("Wind was set to {}", data);
+        return "Wind was set to: " + data;
     }
 }

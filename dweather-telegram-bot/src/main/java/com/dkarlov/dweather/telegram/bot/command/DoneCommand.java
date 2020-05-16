@@ -1,7 +1,6 @@
 package com.dkarlov.dweather.telegram.bot.command;
 
 import com.dkarlov.dweather.telegram.bot.domain.DesiredWeather;
-import com.dkarlov.dweather.telegram.bot.domain.Event;
 import com.dkarlov.dweather.telegram.bot.domain.dto.EventDto;
 import com.dkarlov.dweather.telegram.bot.service.EventService;
 import com.dkarlov.dweather.telegram.bot.service.WeatherService;
@@ -36,22 +35,24 @@ public class DoneCommand extends AbstractBotCommand {
         final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
 
         desiredWeatherOptional.ifPresentOrElse(w -> {
-            final EventDto eventDto = EventDto.builder()
-                    .userId(user.getId())
-                    .userName(user.getUserName())
-                    .temperature(w.getTemperature())
-                    .wind(w.getWind())
-                    .raining(w.isRaining())
-                    .snowing(w.isSnowing())
-                    .build();
-            final Event event = eventService.saveEvent(eventDto);
+            sendMessage.setText("Event was created:\n" + eventService.saveEvent(buildEventDto(user, w)));
             weatherService.removeDesiredWeather(user);
-            sendMessage.setText("Event was created:\n" + event);
         }, () -> {
             log.info("For User {} any event wasn`t found", user.getId());
             sendMessage.setText("You didn`t create any event.\nPlease use /" + CREATE.name().toLowerCase() + " to create a new one.");
         });
 
         return sendMessage;
+    }
+
+    private EventDto buildEventDto(User user, DesiredWeather w) {
+        return EventDto.builder()
+                .userId(user.getId())
+                .userName(user.getUserName())
+                .temperature(w.getTemperature())
+                .wind(w.getWind())
+                .raining(w.isRaining())
+                .snowing(w.isSnowing())
+                .build();
     }
 }

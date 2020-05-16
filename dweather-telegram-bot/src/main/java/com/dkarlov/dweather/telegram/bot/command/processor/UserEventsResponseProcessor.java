@@ -21,7 +21,7 @@ public class UserEventsResponseProcessor extends AbstractCommandResponseProcesso
         final CallbackQuery callbackQuery = update.getCallbackQuery();
         final Optional<Event> userEventOptional = eventService.getEventById(callbackQuery.getData());
 
-        return userEventOptional.map(event -> "Event:\n" + event)
+        return userEventOptional.map(Event::toString)
                 .orElse("No event was found");
     }
 }

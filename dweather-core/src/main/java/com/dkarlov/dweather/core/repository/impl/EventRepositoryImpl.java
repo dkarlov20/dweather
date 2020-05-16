@@ -77,14 +77,13 @@ public class EventRepositoryImpl implements EventRepository {
 
     @Override
     public Optional<Event> getEventById(ObjectId eventId) {
-        final Optional<Event> event = Optional.ofNullable(eventCollection
-                .find(eq(_ID, eventId))
-                .first());
-
-        if (event.isEmpty()) {
-            log.info("Event with id {} was not found", eventId);
-        }
-
-        return event;
+        return Optional.ofNullable(
+                eventCollection
+                        .find(eq(_ID, eventId))
+                        .first())
+                .or(() -> {
+                    log.info("Event with id {} was not found", eventId);
+                    return Optional.empty();
+                });
     }
 }

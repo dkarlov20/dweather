@@ -24,17 +24,17 @@ public class TemperatureResponseProcessor extends AbstractCommandResponseProcess
         final CallbackQuery callbackQuery = update.getCallbackQuery();
         final String data = callbackQuery.getData();
         final User user = callbackQuery.getFrom();
-
         final Optional<DesiredWeather> desiredWeatherOptional = weatherService.getDesiredWeather(user);
-        if (desiredWeatherOptional.isPresent()) {
-            final DesiredWeather desiredWeather = desiredWeatherOptional.get();
-            desiredWeather.setTemperature(Double.valueOf(data));
-            weatherService.putDesiredWeather(user, desiredWeather);
 
-            log.info("Temperature was set to {}", data);
-            return "Temperature was set to: " + data;
-        }
+        return desiredWeatherOptional.map(desiredWeather -> updateTemperature(data, user, desiredWeather))
+                .orElse("Please create an event first");
+    }
 
-        return "Please create an event first";
+    private String updateTemperature(String data, User user, DesiredWeather desiredWeather) {
+        desiredWeather.setTemperature(Double.valueOf(data));
+        weatherService.putDesiredWeather(user, desiredWeather);
+        log.info("Temperature was set to {}", data);
+
+        return "Temperature was set to: " + data;
     }
 }
